@@ -42,7 +42,7 @@ jobs:
           command: mkdir -p build
       - run:
           name: copy output to a file with the branchname
-          command: mv $(cat package.json | jq -r '.name').zip build/$(cat package.json | jq -r '.name').$CIRCLE_BRANCH.zip
+          command: mv $(cat package.json | jq -r '.name').zip build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
       - run: ls -alh
       - persist_to_workspace:
           root: build
@@ -62,10 +62,10 @@ jobs:
       - aws-cli/configure:
           profile-name: example
       - run: |
-          if [[ ! -z $CIRCLE_S3_LAMBDA_BUCKET_NAME ]]; then
-            $(aws s3api head-bucket --bucket $CIRCLE_S3_LAMBDA_BUCKET_NAME);
+          if [[ ! -z $LAMBDA_S3_BUCKET_NAME ]]; then
+            $(aws s3api head-bucket --bucket $LAMBDA_S3_BUCKET_NAME);
             if [[ $? == 0 ]]; then
-               aws s3 cp /tmp/build/*.zip s3://$CIRCLE_S3_LAMBDA_BUCKET_NAME/$CIRCLE_S3_LAMBDA_PREFIX
+               aws s3 cp /tmp/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
             else
                echo "bucket does not exist or permission is not there to view it."
             fi
