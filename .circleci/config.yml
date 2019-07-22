@@ -44,7 +44,7 @@ jobs:
       - persist_to_workspace:
           root: /tmp/dir
           paths:
-            - *.zip
+            - "*.zip"
       - run:
           name: Clean up
           command: npm run cleanup
