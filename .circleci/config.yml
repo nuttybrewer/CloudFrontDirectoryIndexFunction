@@ -32,7 +32,7 @@ jobs:
           path: junit.xml
       - run:
           name: package the output
-          command: npm run package
+          command: npm run pack
       - run:
           name: copy output to a file with the branchname
           command: cp $(cat package.json | jq -r '.name').zip $(cat package.json | jq -r '.name').$CIRCLE_BRANCH.zip
