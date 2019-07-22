@@ -38,11 +38,14 @@ jobs:
           name: package the output
           command: npm run pack
       - run:
+          name: create build directory
+          command: mkdir -p build
+      - run:
           name: copy output to a file with the branchname
-          command: mv $(cat package.json | jq -r '.name').zip $(cat package.json | jq -r '.name').$CIRCLE_BRANCH.zip
+          command: mv $(cat package.json | jq -r '.name').zip build/$(cat package.json | jq -r '.name').$CIRCLE_BRANCH.zip
       - run: ls -alh
       - persist_to_workspace:
-          root: workspace
+          root: build
           paths:
             - "*.zip"
       - run:
@@ -54,7 +57,7 @@ jobs:
       python-version: "3.5"
     steps:
       - attach_workspace:
-          at: /tmp/workspace
+          at: /tmp/build
       - aws-cli/install
       - aws-cli/configure:
           profile-name: example
@@ -62,7 +65,7 @@ jobs:
           if [[ ! -z $CIRCLE_S3_LAMBDA_BUCKET_NAME ]]; then
             $(aws s3api head-bucket --bucket $CIRCLE_S3_LAMBDA_BUCKET_NAME);
             if [[ $? == 0 ]]; then
-               aws s3 cp /tmp/workspace/*.zip s3://$CIRCLE_S3_LAMBDA_BUCKET_NAME/$CIRCLE_S3_LAMBDA_PREFIX
+               aws s3 cp /tmp/build/*.zip s3://$CIRCLE_S3_LAMBDA_BUCKET_NAME/$CIRCLE_S3_LAMBDA_PREFIX
             else
                echo "bucket does not exist or permission is not there to view it."
             fi
