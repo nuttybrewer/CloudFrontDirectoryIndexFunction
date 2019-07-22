@@ -3,7 +3,6 @@ jobs:
   build:
     docker:
       - image: circleci/node:chakracore-8.10
-
     steps:
       - checkout
       - run:
@@ -31,6 +30,13 @@ jobs:
           prefix: coverage
       - store_test_results: # for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: junit.xml
+      - run:
+          name: package the output
+          command: npm run package
+      - run:
+          name: copy output to a file with the branchname
+          command: cp $(cat package.json | jq -r '.name').zip $(cat package.json | jq -r '.name').$CIRCLE_BRANCH.zip
+      - run: ls -alh
       - run:
           name: Clean up
           command: npm run cleanup
