@@ -23,15 +23,17 @@ jobs:
       - run: # run tests
           name: run npm test
           command: npm test
+          environment:
+            JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
       - store_artifacts: # special step to save test results as as artifact
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: junit.xml
+          path: reports/junit
           prefix: tests
       - store_artifacts: # for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
           path: coverage
           prefix: coverage
       - store_test_results: # for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
-          path: junit.xml
+          path: reports/junit
       - run:
           name: package the output
           command: npm run pack
@@ -39,6 +41,10 @@ jobs:
           name: copy output to a file with the branchname
           command: mv $(cat package.json | jq -r '.name').zip $(cat package.json | jq -r '.name').$CIRCLE_BRANCH.zip
       - run: ls -alh
+      - persist_to_workspace:
+          root: /tmp/dir
+          paths:
+            - *.zip
       - run:
           name: Clean up
           command: npm run cleanup
@@ -47,12 +53,25 @@ jobs:
       name: aws-cli/default
       python-version: "3.5"
     steps:
+      - attach_workspace:
+          at: /tmp/dir
       - aws-cli/install
       - aws-cli/configure:
           profile-name: example
       - run: |
-          if [[ -z $(aws s3api head-bucket --bucket my-bucket) ]]; then
-                  echo "bucket exists"
-          else
-                  echo "bucket does not exist or permission is not there to view it."
+          if [[ ! -z $CIRCLE_S3_LAMBDA_BUCKET_NAME ]]; then
+            $(aws s3api head-bucket --bucket $CIRCLE_S3_LAMBDA_BUCKET_NAME);
+            if [[ $? == 0 ]]; then
+               aws s3 cp *.zip s3://$CIRCLE_S3_LAMBDA_BUCKET_NAME/$CIRCLE_S3_LAMBDA_PREFIX
+            else
+               echo "bucket does not exist or permission is not there to view it."
+            fi
           fi
+workflows:
+  version: 2
+  build-CloudFrontJWTValidator:
+    jobs:
+      - build
+      - aws-cli:
+          requires:
+            - build
