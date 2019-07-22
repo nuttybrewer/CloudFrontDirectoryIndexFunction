@@ -4,7 +4,8 @@
   "description": "A simple JWT validator taken from AWS blog post by Alex Tomic and Cameron Worrell",
   "main": "index.js",
   "scripts": {
-    "test": "node-lambda run"
+    "test": "jest --collectCoverage=true --ci --runInBand --reporters=default --reporters=jest-junit",
+    "cleanup": "rm -rf node_modules/ build/ coverage/ junit.xml"
   },
   "repository": {
     "type": "git",
@@ -13,11 +14,15 @@
   "author": "Patrick Ethier",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/nuttybrewer/CPJT-600-1901/issues"
+    "url": "https://github.com/nuttybrewer/CloudFrontJWTValidator/issues"
   },
-  "homepage": "https://github.com/nuttybrewer/CPJT-600-1901#readme",
+  "homepage": "https://github.com/nuttybrewer/CloudFrontJWTValidator#readme",
   "dependencies": {
+    "jest-junit": "^6.4.0",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.1"
+  },
+  "devDependencies": {
+    "jest": "^24.8.0"
   }
 }
