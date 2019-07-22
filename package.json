@@ -1,0 +1,23 @@
+{
+  "name": "aws-cloudfront-jwtvalidator",
+  "version": "1.0.0",
+  "description": "A simple JWT validator taken from AWS blog post by Alex Tomic and Cameron Worrell",
+  "main": "index.js",
+  "scripts": {
+    "test": "node-lambda run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuttybrewer/CPJT-600-1901.git"
+  },
+  "author": "Patrick Ethier",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/nuttybrewer/CPJT-600-1901/issues"
+  },
+  "homepage": "https://github.com/nuttybrewer/CPJT-600-1901#readme",
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.1"
+  }
+}

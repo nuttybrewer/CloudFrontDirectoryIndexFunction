@@ -1,0 +1,17 @@
+version: 2.1
+orbs:
+  aws-cli: circleci/aws-cli@0.1.13
+
+jobs:
+  build:
+    steps:
+      - run: echo "Hello!"
+
+  aws-cli:
+    executor:
+      name: aws-cli/default
+      python-version: "3.5"
+    steps:
+      - aws-cli/install
+      - aws-cli/configure:
+          profile-name: example
