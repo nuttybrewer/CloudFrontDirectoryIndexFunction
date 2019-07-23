@@ -12,6 +12,10 @@
     "lambdaFunctionName": {
       "Type": "String",
       "Description": "The name or label to give the Lambda function"
+    },
+    "buildVersion": {
+      "Type": "String",
+      "Description": "The buildVersion"
     }
   },
   "Resources": {
@@ -29,7 +33,7 @@
           }]
         },
         "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
         ]
       }
     },
@@ -50,6 +54,52 @@
         "Runtime": "nodejs8.10",
         "Timeout": "30",
         "Role": { "Fn::GetAtt": [ "CreateJWTValidatorLambdaRole", "Arn" ] }
+      }
+    },
+    "CreateJWTValidatorVersion": {
+      "Type": "AWS::Lambda::Version",
+      "Properties": {
+        "FunctionName": {
+            "Fn::GetAtt": [ "CreateAndReturnJWTValidatorLambdaFunction", "Arn" ]
+        },
+        "Description":   {
+          "Fn::Join": [
+            " ",
+            [
+              "A version representing buildno",
+              { "Ref": "buildVersion" }
+            ]
+          ]
+        }
+      }
+    },
+    "CreateJWTValidatorAlias": {
+      "Type": "AWS::Lambda::Alias",
+      "Properties": {
+        "Name": {
+          "Fn::Join": [
+            "-",
+            [
+              { "Ref": "lambdaFunctionName" },
+              { "Ref": "buildVersion" }
+            ]
+          ]
+        },
+        "FunctionName": {
+            "Fn::GetAtt": [ "CreateAndReturnJWTValidatorLambdaFunction", "Arn" ]
+        },
+        "FunctionVersion": {
+            "Fn::GetAtt": [ "CreateJWTValidatorVersion", "Version" ]
+        },
+        "Description":   {
+          "Fn::Join": [
+            " ",
+            [
+              "A version representing buildno",
+              { "Ref": "buildVersion" }
+            ]
+          ]
+        }
       }
     }
   }

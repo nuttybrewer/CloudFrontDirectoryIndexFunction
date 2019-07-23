@@ -82,6 +82,7 @@ jobs:
             "lambdaBucketName=$LAMBDA_S3_BUCKET_NAME" \
             "lambdaZipPath=$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip" \
             "lambdaFunctionName=$LAMBDA_FUNCTION_NAME" \
+            "buildVersion"=$CIRCLE_BUILD_NUM" \
             --capabilities CAPABILITY_IAM
 workflows:
   version: 2
