@@ -24,7 +24,7 @@ jobs:
           name: run npm test
           command: cd nodejs && npm test
           environment:
-            JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
+            JEST_JUNIT_OUTPUT: "reports/junit/junit.xml"
       - store_artifacts: # special step to save test results as as artifact
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
           path: nodejs/reports/junit
@@ -42,7 +42,7 @@ jobs:
           command: mkdir -p nodejs/build
       - run:
           name: copy output to a file with the branchname
-          command: mv nodejs/$(cat package.json | jq -r '.name').zip nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
+          command: mv nodejs/$(cat nodejs/package.json | jq -r '.name').zip nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
       - run: ls -alh nodejs/
       - persist_to_workspace:
           root: nodejs/build
