@@ -81,7 +81,7 @@ jobs:
             $(aws s3api list-object-versions \
             --bucket $LAMBDA_S3_BUCKET_NAME \
             --prefix $LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip \
-            --max-items 1 | jq -r "Versions[0].VersionId")' >> $BASH_ENV
+            --max-items 1 | jq -r ".Versions[0].VersionId")' >> $BASH_ENV
       - run:
           name: Deploy Lambda Function to AWS
           command: |
