@@ -79,9 +79,9 @@ jobs:
             aws cloudformation deploy --stack-name $LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH \
             --template-file ./CloudFormation/JWTValidatorCFTemplate.json \
             --parameter-overrides \
-            ParameterKey=lambdaBucketName,ParameterValue=$LAMBDA_S3_BUCKET_NAME \
-            ParameterKey=lambdaZipPath,ParameterValue=$LAMBDA_S3_PREFIX/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip \
-            ParameterKey=lambdaFunctionName,ParameterValue=$LAMBDA_FUNCTION_NAME \
+            "lambdaBucketName=$LAMBDA_S3_BUCKET_NAME" \
+            "lambdaZipPath=$LAMBDA_S3_PREFIX/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip" \
+            "lambdaFunctionName=$LAMBDA_FUNCTION_NAME" \
             --capabilities CAPABILITY_IAM
 workflows:
   version: 2
