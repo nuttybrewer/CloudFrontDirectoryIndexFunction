@@ -8,6 +8,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: change working dir to nodejs
+          command: 'cd nodejs'
+      - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
       - restore_cache: # special step to restore the dependency cache
