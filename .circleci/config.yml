@@ -61,15 +61,27 @@ jobs:
       - aws-cli/install
       - aws-cli/configure:
           profile-name: example
-      - run: |
-          if [[ ! -z $LAMBDA_S3_BUCKET_NAME ]]; then
-            $(aws s3api head-bucket --bucket $LAMBDA_S3_BUCKET_NAME);
-            if [[ $? == 0 ]]; then
-               aws s3 cp /tmp/nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
-            else
-               echo "bucket does not exist or permission is not there to view it."
+      - run:
+          name: Deploy Zip File to lambda function S3 Bucket
+          command: |
+            if [[ ! -z $LAMBDA_S3_BUCKET_NAME ]]; then
+              $(aws s3api head-bucket --bucket $LAMBDA_S3_BUCKET_NAME);
+              if [[ $? == 0 ]]; then
+                 aws s3 cp /tmp/nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
+              else
+                 echo "bucket does not exist or permission is not there to view it."
+              fi
             fi
-          fi
+      - run:
+          name: Deploy Lambda Function to AWS
+          command: |
+            aws cloudformation deploy --stack-name $LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH \
+            --template-file CloudFormation/JWTValidatorCFTemplate.json \
+            --parameter-overrides \
+            ParameterKey=lambdaBucketName,ParameterValue=$LAMBDA_S3_BUCKET_NAME \
+            ParameterKey=lambdaZipPath,ParameterVale=$LAMBDA_S3_PREFIX/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip \
+            ParameterKey=lambdaFunctionName,ParameterValue=$LAMBDA_FUNCTION_NAME \
+            --capabilities CAPABILITY_IAM 
 workflows:
   version: 2
   build-CloudFrontJWTValidator:

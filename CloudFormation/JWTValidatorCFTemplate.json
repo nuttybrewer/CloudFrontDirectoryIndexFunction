@@ -41,6 +41,11 @@
           "S3Bucket": {"Ref": "lambdaBucketName"},
           "S3Key": {"Ref": "lambdaZipPath"}
         },
+        "Environment": {
+          "Variables": {
+            "WHITELIST": "[\"/public*\", \"/static*\"]"
+          }
+        }
         "Handler": "index.handler",
         "Runtime": "nodejs8.10",
         "Timeout": "30",
