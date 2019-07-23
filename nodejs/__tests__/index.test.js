@@ -1,3 +1,4 @@
+// Execute tests to verify that whitelists are working
 const lambda = require('../index');
 
 const context = {};
