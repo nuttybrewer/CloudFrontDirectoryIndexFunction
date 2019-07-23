@@ -13,6 +13,10 @@
       "Type": "String",
       "Description": "The name or label to give the Lambda function"
     },
+    "lambdaZipObjectVersion": {
+      "Type": "String",
+      "Description": "VersionId of the zipFile inside S3"
+    },
     "buildVersion": {
       "Type": "String",
       "Description": "The buildVersion"
@@ -42,8 +46,9 @@
       "Properties": {
         "FunctionName": { "Ref": "lambdaFunctionName"},
         "Code": {
-          "S3Bucket": {"Ref": "lambdaBucketName"},
-          "S3Key": {"Ref": "lambdaZipPath"}
+          "S3Bucket": { "Ref": "lambdaBucketName" },
+          "S3Key": { "Ref": "lambdaZipPath" },
+          "S3ObjectVersion": { "Ref": "lambdaZipObjectVersion" },
         },
         "Environment": {
           "Variables": {
