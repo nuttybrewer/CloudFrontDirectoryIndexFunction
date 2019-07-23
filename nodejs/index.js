@@ -1,4 +1,8 @@
-// Comment
+'use strict';
+var jwt = require('jsonwebtoken');
+var jwkToPem = require('jwk-to-pem');
+
+
 exports.handler = async (event, context, callback) => {
     const cfrequest = event.Records[0].cf.request;
     const headers = cfrequest.headers;
