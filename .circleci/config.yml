@@ -8,9 +8,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: change working dir to nodejs
-          command: 'cd nodejs'
-      - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
       - restore_cache: # special step to restore the dependency cache
@@ -18,49 +15,49 @@ jobs:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: install-node-dependencies
-          command: npm install
+          command: cd nodjs && npm install
       - save_cache: # special step to save the dependency cache
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
-            - ./node_modules
+            - ./nodejs/node_modules
       - run: # run tests
           name: run npm test
-          command: npm test
+          command: cd nodejs && npm test
           environment:
             JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
       - store_artifacts: # special step to save test results as as artifact
           # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: reports/junit
+          path: nodejs/reports/junit
           prefix: tests
       - store_artifacts: # for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: coverage
+          path: nodejs/coverage
           prefix: coverage
       - store_test_results: # for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
-          path: reports/junit
+          path: nodejs/reports/junit
       - run:
           name: package the output
-          command: npm run pack
+          command: cd nodejs && npm run pack
       - run:
           name: create build directory
-          command: mkdir -p build
+          command: mkdir -p nodejs/build
       - run:
           name: copy output to a file with the branchname
-          command: mv $(cat package.json | jq -r '.name').zip build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
-      - run: ls -alh
+          command: mv nodejs/$(cat package.json | jq -r '.name').zip nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
+      - run: ls -alh nodejs/
       - persist_to_workspace:
-          root: build
+          root: nodejs/build
           paths:
             - "*.zip"
       - run:
           name: Clean up
-          command: npm run cleanup
+          command: cd nodejs && npm run cleanup
   aws-cli:
     executor:
       name: aws-cli/default
       python-version: "3.5"
     steps:
       - attach_workspace:
-          at: /tmp/build
+          at: /tmp/nodejs/build
       - aws-cli/install
       - aws-cli/configure:
           profile-name: example
@@ -68,7 +65,7 @@ jobs:
           if [[ ! -z $LAMBDA_S3_BUCKET_NAME ]]; then
             $(aws s3api head-bucket --bucket $LAMBDA_S3_BUCKET_NAME);
             if [[ $? == 0 ]]; then
-               aws s3 cp /tmp/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
+               aws s3 cp /tmp/nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
             else
                echo "bucket does not exist or permission is not there to view it."
             fi
