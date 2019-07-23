@@ -71,7 +71,7 @@ jobs:
                  aws s3 cp /tmp/nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip;
               else
                  echo "bucket does not exist or permission is not there to view it.";
-                 exit(1);
+                 exit 1;
               fi
             fi
       - run:
