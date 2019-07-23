@@ -58,6 +58,7 @@ jobs:
     steps:
       - attach_workspace:
           at: /tmp/nodejs/build
+      - checkout
       - aws-cli/install
       - aws-cli/configure:
           profile-name: example
