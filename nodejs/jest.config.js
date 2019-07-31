@@ -1,3 +1,3 @@
-{
-  reporters: ["default", "jest-junit"]
+module.exports = {
+  "reporters": ["default", "jest-junit"]
 }
