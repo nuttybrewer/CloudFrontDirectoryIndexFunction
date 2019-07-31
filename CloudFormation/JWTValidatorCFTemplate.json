@@ -16,10 +16,6 @@
     "lambdaZipObjectVersion": {
       "Type": "String",
       "Description": "VersionId of the zipFile inside S3"
-    },
-    "buildVersion": {
-      "Type": "String",
-      "Description": "The buildVersion"
     }
   },
   "Resources": {
@@ -31,7 +27,7 @@
           "Statement": [{
             "Effect": "Allow",
             "Principal": {
-              "Service": ["lambda.amazonaws.com"]
+              "Service": ["lambda.amazonaws.com", "edgelambda.amazonaws.com"]
             },
             "Action": ["sts:AssumeRole"]
           }]
@@ -50,14 +46,9 @@
           "S3Key": { "Ref": "lambdaZipPath" },
           "S3ObjectVersion": { "Ref": "lambdaZipObjectVersion" },
         },
-        "Environment": {
-          "Variables": {
-            "WHITELIST": "[\"/public*\", \"/static*\"]"
-          }
-        },
         "Handler": "index.handler",
-        "Runtime": "nodejs8.10",
-        "Timeout": "30",
+        "Runtime": "nodejs10.x",
+        "Timeout": "5",
         "Role": { "Fn::GetAtt": [ "CreateJWTValidatorLambdaRole", "Arn" ] }
       }
     }
