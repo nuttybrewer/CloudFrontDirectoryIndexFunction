@@ -4,7 +4,10 @@ orbs:
 jobs:
   build:
     docker:
-      - image: circleci/node:chakracore-8.10
+      - image: circleci/node:latest
+    executor:
+      name: aws-cli/default
+      python-version: "3.5"
     steps:
       - checkout
       - run:
@@ -35,6 +38,19 @@ jobs:
       - store_test_results: # for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: nodejs/reports/junit
       - run:
+          name: Clean up env.js
+          command: rm nodejs/env.js
+      - run: # Package env.sh for production deployment since Lambda@Edge doesn't support environment variables
+          name: Get JWT Keys from Cognito
+          command: |
+            echo 'export COGNITO_JWKS=$(cd nodejs && node generatejwt.js)' >> $BASH_ENV;
+      - run:
+          name: Generate environment variables file
+          command: cd nodejs && node_modules/.bin/envsub __templates__/env.js.template env.js
+      - run:
+          name: ENV sanity check
+          command: cat nodejs/env.js
+      - run:
           name: package the output
           command: cd nodejs && npm run pack
       - run:
@@ -44,21 +60,6 @@ jobs:
           name: copy output to a file with the branchname
           command: mv nodejs/$(cat nodejs/package.json | jq -r '.name').zip nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip
       - run: ls -alh nodejs/
-      - persist_to_workspace:
-          root: nodejs/build
-          paths:
-            - "*.zip"
-      - run:
-          name: Clean up
-          command: cd nodejs && npm run cleanup
-  aws-cli:
-    executor:
-      name: aws-cli/default
-      python-version: "3.5"
-    steps:
-      - attach_workspace:
-          at: /tmp/nodejs/build
-      - checkout
       - aws-cli/install
       - aws-cli/configure:
           profile-name: example
@@ -68,7 +69,8 @@ jobs:
             if [[ ! -z $LAMBDA_S3_BUCKET_NAME ]]; then
               $(aws s3api head-bucket --bucket $LAMBDA_S3_BUCKET_NAME);
               if [[ $? == 0 ]]; then
-                 aws s3 cp /tmp/nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip;
+                 aws s3 cp nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip \
+                 s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip;
               else
                  echo "bucket does not exist or permission is not there to view it.";
                  exit 1;
@@ -82,19 +84,25 @@ jobs:
             --parameter-overrides \
             "lambdaBucketName=$LAMBDA_S3_BUCKET_NAME" \
             "lambdaZipPath=$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip" \
-            "lambdaFunctionName=$LAMBDA_FUNCTION_NAME" \
+            "lambdaFunctionName=$LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH" \
             "lambdaZipObjectVersion=$(aws s3api list-object-versions \
             --bucket $LAMBDA_S3_BUCKET_NAME \
             --prefix $LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip \
             --max-items 1 | jq -r '.Versions[0].VersionId')" \
             "buildVersion=$CIRCLE_BUILD_NUM" \
             --capabilities CAPABILITY_IAM
-workflows:
-  version: 2
-  build-CloudFrontJWTValidator:
-    jobs:
-      - build
-      - aws-cli:
-          requires:
-            - build
-          context: aws
+      - run:
+          name: Create a new version of the lambda code
+          command: |
+            echo 'export LAMBDA_VER=$(aws lambda publish-version \
+            --function-name $LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH | jq -r '.Version')' >> $BASH_ENV
+      - run:
+          name: Create a tag reflecting the build number
+          command: |
+            source $BASH_ENV;
+            aws lambda create-alias --function-name $LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH \
+            --name "cideployed-${CIRCLE_BUILD_NUM:-$LAMBDA_VER}" \
+            --function-version $LAMBDA_VER
+      - run:
+          name: Clean up
+          command: cd nodejs && npm run cleanup
