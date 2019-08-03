@@ -52,5 +52,12 @@
         "Role": { "Fn::GetAtt": [ "CreateJWTValidatorLambdaRole", "Arn" ] }
       }
     }
+  },
+  "Outputs": {
+    "JWTValidatorOutput": {
+      "Description": "ARN of the Java Web Token verification function",
+      "Value": { "Fn::GetAtt": [ "CreateAndReturnJWTValidatorLambdaFunction", "Arn" ] },
+      "Export": { "Name" : {"Fn::Sub": "${AWS::StackName}-JWTValidatorArn" }}
+    }
   }
 }
