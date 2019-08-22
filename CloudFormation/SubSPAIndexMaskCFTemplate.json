@@ -19,7 +19,7 @@
     }
   },
   "Resources": {
-    "CreateJWTValidatorLambdaRole": {
+    "CreateSubSPAIndexMaskLambdaRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -37,7 +37,7 @@
         ]
       }
     },
-    "CreateAndReturnJWTValidatorLambdaFunction": {
+    "CreateAndReturnSubSPAIndexMaskLambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "FunctionName": { "Ref": "lambdaFunctionName"},
@@ -49,15 +49,15 @@
         "Handler": "index.handler",
         "Runtime": "nodejs10.x",
         "Timeout": "5",
-        "Role": { "Fn::GetAtt": [ "CreateJWTValidatorLambdaRole", "Arn" ] }
+        "Role": { "Fn::GetAtt": [ "CreateSubSPAIndexMaskLambdaRole", "Arn" ] }
       }
     }
   },
   "Outputs": {
-    "JWTValidatorOutput": {
-      "Description": "ARN of the Java Web Token verification function",
-      "Value": { "Fn::GetAtt": [ "CreateAndReturnJWTValidatorLambdaFunction", "Arn" ] },
-      "Export": { "Name" : {"Fn::Sub": "${AWS::StackName}-JWTValidatorArn" }}
+    "SubSPAIndexMaskOutput": {
+      "Description": "ARN of the Sub SPA Index Mask function",
+      "Value": { "Fn::GetAtt": [ "CreateAndReturnSubSPAIndexMaskLambdaFunction", "Arn" ] },
+      "Export": { "Name" : {"Fn::Sub": "${AWS::StackName}-SubSPAIndexMaskArn" }}
     }
   }
 }

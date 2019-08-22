@@ -40,16 +40,9 @@ jobs:
       - run:
           name: Clean up env.js
           command: rm nodejs/env.js
-      - run: # Package env.sh for production deployment since Lambda@Edge doesn't support environment variables
-          name: Get JWT Keys from Cognito
-          command: |
-            echo 'export COGNITO_JWKS=$(cd nodejs && node generatejwt.js)' >> $BASH_ENV;
       - run:
           name: Generate environment variables file
           command: cd nodejs && node_modules/.bin/envsub __templates__/env.js.template env.js
-      - run:
-          name: ENV sanity check
-          command: cat nodejs/env.js
       - run:
           name: package the output
           command: cd nodejs && npm run pack
@@ -80,7 +73,7 @@ jobs:
           name: Deploy Lambda Function to AWS
           command: |
             aws cloudformation deploy --stack-name $LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH \
-            --template-file ./CloudFormation/JWTValidatorCFTemplate.json \
+            --template-file ./CloudFormation/SubSPAIndexMaskCFTemplate.json \
             --parameter-overrides \
             "lambdaBucketName=$LAMBDA_S3_BUCKET_NAME" \
             "lambdaZipPath=$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip" \
