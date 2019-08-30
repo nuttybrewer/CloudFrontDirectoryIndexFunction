@@ -11,6 +11,15 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Create FQDN and stack name environment variables
+          command: |
+            RAW_STACK_NAME="${CLOUDFRONT_SITE_NAME}-${ROUTE53_DOMAIN_NAME}-${FUNCTION_NAME}-${CIRCLE_BRANCH:-local}"; \
+            STACK_NAME=$(echo $RAW_STACK_NAME | tr -cs "[:alnum:][:cntrl:]" "-"); \
+            echo "${STACK_NAME}"; \
+            echo "export STACK_NAME=${STACK_NAME}" >> $BASH_ENV; \
+            echo "export LAMBDA_S3_PREFIX=${STACK_NAME}/" >> $BASH_ENV; \
+            echo "export LAMBDA_FUNCTION_NAME=${STACK_NAME}" >> $BASH_ENV; \
+      - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
       - restore_cache: # special step to restore the dependency cache
@@ -62,8 +71,8 @@ jobs:
             if [[ ! -z $LAMBDA_S3_BUCKET_NAME ]]; then
               $(aws s3api head-bucket --bucket $LAMBDA_S3_BUCKET_NAME);
               if [[ $? == 0 ]]; then
-                 aws s3 cp nodejs/build/$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip \
-                 s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip;
+                 aws s3 cp nodejs/build/$STACK_NAME.$CIRCLE_BRANCH.zip \
+                 s3://$LAMBDA_S3_BUCKET_NAME/$LAMBDA_S3_PREFIX$STACK_NAME.zip;
               else
                  echo "bucket does not exist or permission is not there to view it.";
                  exit 1;
@@ -72,15 +81,15 @@ jobs:
       - run:
           name: Deploy Lambda Function to AWS
           command: |
-            aws cloudformation deploy --stack-name $LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH \
+            aws cloudformation deploy --stack-name $STACK_NAME \
             --template-file ./CloudFormation/SubSPAIndexMaskCFTemplate.json \
             --parameter-overrides \
             "lambdaBucketName=$LAMBDA_S3_BUCKET_NAME" \
-            "lambdaZipPath=$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip" \
-            "lambdaFunctionName=$LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH" \
+            "lambdaZipPath=$LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.zip" \
+            "lambdaFunctionName=$LAMBDA_FUNCTION_NAME" \
             "lambdaZipObjectVersion=$(aws s3api list-object-versions \
             --bucket $LAMBDA_S3_BUCKET_NAME \
-            --prefix $LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.$CIRCLE_BRANCH.zip \
+            --prefix $LAMBDA_S3_PREFIX$LAMBDA_FUNCTION_NAME.zip \
             --max-items 1 | jq -r '.Versions[0].VersionId')" \
             "buildVersion=$CIRCLE_BUILD_NUM" \
             --capabilities CAPABILITY_IAM
@@ -88,12 +97,12 @@ jobs:
           name: Create a new version of the lambda code
           command: |
             echo 'export LAMBDA_VER=$(aws lambda publish-version \
-            --function-name $LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH | jq -r '.Version')' >> $BASH_ENV
+            --function-name $LAMBDA_FUNCTION_NAME | jq -r '.Version')' >> $BASH_ENV
       - run:
           name: Create a tag reflecting the build number
           command: |
             source $BASH_ENV;
-            aws lambda create-alias --function-name $LAMBDA_FUNCTION_NAME-$CIRCLE_BRANCH \
+            aws lambda create-alias --function-name $LAMBDA_FUNCTION_NAME \
             --name "cideployed-${CIRCLE_BUILD_NUM:-$LAMBDA_VER}" \
             --function-version $LAMBDA_VER
       - run:

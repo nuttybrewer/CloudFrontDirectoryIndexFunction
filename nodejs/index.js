@@ -10,15 +10,16 @@ exports.handler = (event, context, lambda_return_cb) => {
     showHidden: false,
     depth: null
   }));
-  const cfresponse = event.Records[0].cf.response;
   const cfrequest = event.Records[0].cf.request;
-
-  // Check if this is a response event
-  if (event.Records[0].cf.config.eventType === 'viewer-response') {
-    console.log('Processing a response');
-    lambda_return_cb(null, cfresponse);
-    return true;
+  if(cfrequest.uri.endsWith('/')){
+    cfrequest.uri = cfrequest.uri + 'index.html'
   }
-  lambda_return_cb(null, cfresponse);
+  else {
+    cfrequest.uri = cfrequest.uri + '/index.html'
+  }
+  console.log(util.inspect(cfrequest, {
+    showHidden: false,
+    depth: null}));
+  lambda_return_cb(null, cfrequest);
   return true;
 };
