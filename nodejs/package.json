@@ -1,19 +1,19 @@
 {
-  "name": "aws-cloudfront-jwtvalidator",
+  "name": "aws-cloudfront-spaindex",
   "version": "1.0.0",
-  "description": "A simple JWT validator taken from AWS blog post by Alex Tomic and Cameron Worrell",
+  "description": "A simple function that detects if a path was requested and returns it's index.html",
   "main": "index.js",
   "engines": {
     "node": "=8.10"
   },
   "scripts": {
-    "test": "node_modules/.bin/envsub --env-file __templates__/test.env __templates__/env.js.template env.js && jest --collectCoverage=true --ci --runInBand --reporters=default --reporters=jest-junit",
+    "test": "jest --collectCoverage=true --ci --runInBand --reporters=default --reporters=jest-junit",
     "cleanup": "rm -rf node_modules/ build/ coverage/ junit.xml *.zip env.js",
     "pack": "npm-pack-zip"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nuttybrewer/CPJT-600-1901.git"
+    "url": "git+https://github.com/nuttybrewer/CloudFrontDirectoryIndexFunction.git"
   },
   "author": "Patrick Ethier",
   "license": "Apache-2.0",
@@ -28,15 +28,11 @@
     "util": "^0.12.1"
   },
   "devDependencies": {
-    "envsub": "^3.0.9",
     "jest": "^24.8.0",
     "jest-junit": "^6.4.0",
-    "jwk-to-pem": "^2.0.1",
     "npm-pack-zip": "^1.2.7"
   },
   "bundleDependencies": {
-    "jsonwebtoken": "^8.5.1",
-    "node-fetch": "^2.6.0",
     "util": "^0.12.1"
   }
 }
