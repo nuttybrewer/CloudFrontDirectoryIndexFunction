@@ -3,7 +3,6 @@ const util = require('util');
 const {
   URLSearchParams
 } = require('url');
-const env = require('./env');
 
 exports.handler = (event, context, lambda_return_cb) => {
   console.log(util.inspect(event, {
