@@ -1,16 +1,8 @@
 'use strict';
 // Execute tests to verify that whitelists are working
 const lambda = require('../index');
-const env = require('../env');
-const util = require('util');
-const fetchMock = require('node-fetch');
 
 const context = {};
-const mockKeys = { COGNITO_JWKS: {"somekey": "somekey"}};
-
-beforeEach(() => {
-  fetchMock.reset();
-})
 
 test('Folder request ending in slash', (done) =>{
   const viewerResponse = {
