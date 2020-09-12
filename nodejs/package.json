@@ -24,7 +24,7 @@
   "dependencies": {
     "fetch-mock": "^7.3.9",
     "jsonwebtoken": "^8.5.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "util": "^0.12.1"
   },
   "devDependencies": {
